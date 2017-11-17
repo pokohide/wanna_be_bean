@@ -16,3 +16,8 @@ https://qiita.com/k_sui_14/items/bb9dc8395da85400e518
 https://blanktar.jp/blog/2015/02/python-opencv-realtime-lauhgingman.html
 http://symfoware.blog68.fc2.com/blog-entry-1557.html
 
+
+## 手順
+
+1. OpenCVをインストール(Mac)
+https://blog.ymyzk.com/2015/07/os-x-opencv-3-python-2-3/
