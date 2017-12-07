@@ -21,3 +21,11 @@ http://symfoware.blog68.fc2.com/blog-entry-1557.html
 
 1. OpenCVをインストール(Mac)
 https://blog.ymyzk.com/2015/07/os-x-opencv-3-python-2-3/
+
+2. Macに`dlib`をインストール
+https://qiita.com/matsu_mh/items/7955e9b1f14dc92a38fe
+
+## 課題
+- 目の位置をとってその角度に近いビーンを選択
+- ビーンが圧縮されないように比率を保ったままリサイズ
+- 合成元の色にビーンの色を近づけてから合成
