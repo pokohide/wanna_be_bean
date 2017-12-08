@@ -53,8 +53,12 @@ class BeBean:
                                image.shape[0] * self.SCALE_FACTOR))
 
     rects = self.detector(image, 1)
+
+    print("Number of faces detected: {}".format(len(rects)))
+
     if len(rects) == 0: raise NoFaces
-    return [Face(image, rect) for rect in rects]
+    faces = [Face(image, rect) for rect in rects]
+    return image, faces
 
   def transformation_from_points(self, t_points, o_points):
     """
@@ -87,7 +91,6 @@ class BeBean:
       [numpy.hstack((( o_std / t_std ) * R, o_mean.T - ( o_std / t_std ) * R * t_mean.T )),
       numpy.matrix([ 0., 0., 1. ])]
     )
-
 
   def get_face_mask(self, face):
     image = numpy.zeros(face.image.shape[:2], dtype = numpy.float64)
@@ -131,29 +134,33 @@ class BeBean:
     return (o_image.astype(numpy.float64) * t_blur.astype(numpy.float64) / o_blur.astype(numpy.float64))
 
   def to_bean(self, image_path):
-    faces = self.load_faces_from_image(image_path)
+    original, faces = self.load_faces_from_image(image_path)
+
+    # base_imageに合成していく
+    base_image = original.copy()
+
     for face in faces:
-      # print(face.landmarks)
-      # print(len(face.landmarks))
-      # print('---')
-      # print((numpy.linalg.norm(self.beans[0].landmarks - face.landmarks)))
-      bean = self.beans[0]
+      bean = self._get_bean_similar_to(face)
+      bean_mask = self.get_face_mask(bean)
 
       M = self.transformation_from_points(
         face.landmarks[self.ALIGN_POINTS],
         bean.landmarks[self.ALIGN_POINTS]
       )
 
-      bean_mask = self.get_face_mask(bean)
-      warped_bean_mask = self.warp_image(bean_mask, M, face.image.shape)
+      warped_bean_mask = self.warp_image(bean_mask, M, base_image.shape)
+      # warped_bean_mask = self.warp_image(bean_mask, M, face.image.shape)
       combined_mask = numpy.max(
         [self.get_face_mask(face), warped_bean_mask], axis = 0
       )
 
-      warped_image = self.warp_image(bean.image, M, face.image.shape)
-      warped_corrected_image = self.correct_colors(face.image, warped_image, face.landmarks)
-      output_image = face.image * (1.0 - combined_mask) + warped_corrected_image * combined_mask
-    cv2.imwrite('output.jpg', output_image)
+      # warped_image = self.warp_image(bean.image, M, face.image.shape)
+      warped_image = self.warp_image(bean.image, M, base_image.shape)
+      warped_corrected_image = self.correct_colors(base_image, warped_image, face.landmarks)
+      base_image = base_image * (1.0 - combined_mask) + warped_corrected_image * combined_mask
+
+    path, ext = os.path.splitext( os.path.basename(image_path) )
+    cv2.imwrite('outputs/output_' + path + ext, base_image)
 
   def _draw_convex_hull(self, image, points, color):
     "指定したイメージの領域を塗りつぶす"
@@ -165,15 +172,26 @@ class BeBean:
     "Mr. ビーンの画像をロードして、顔(特徴点など)を検出しておく"
 
     self.beans = []
-    for image_path in glob.glob(os.path.join('beans', '*.png')):
-      bean_face = self.load_faces_from_image(image_path)[0]
-      self.beans.append(bean_face)
+    for image_path in glob.glob(os.path.join('beans', '*.jpg')):
+      image, bean_face = self.load_faces_from_image(image_path)
+      self.beans.append(bean_face[0])
     print('Mr. Beanをロードしました.')
+
+  def _get_bean_similar_to(self, face):
+    "特徴点の差分距離が小さいMr.ビーンを返す"
+
+    get_distances = numpy.vectorize(lambda bean: numpy.linalg.norm(face.landmarks - bean.landmarks))
+
+    distances = get_distances(self.beans)
+    return self.beans[distances.argmin()]
 
 if __name__ == '__main__':
   be_bean = BeBean()
+  # be_bean.to_bean('./images/kanna.jpg')
+  be_bean.to_bean('./images/kikuti.jpg')
+  # be_bean.to_bean('./images/avengers.jpg')
   # be_bean.to_bean('./images/thor.jpg')
   # be_bean.to_bean('./images/x-men.jpg')
-  be_bean.to_bean('./images/iron-man.jpg')
+  # be_bean.to_bean('./images/iron-man.jpg')
   # be_bean.to_bean('./images/captain.jpg')
 
