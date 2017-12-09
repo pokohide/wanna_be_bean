@@ -8,12 +8,14 @@ import os
 PREDICTOR_PATH = './shape_predictor_68_face_landmarks.dat'
 PREDICTOR = dlib.shape_predictor(PREDICTOR_PATH)
 
+class NoFaces(Exception):
+    pass
+
 class Face:
   def __init__(self, image, rect):
     self.image = image
-    self.rect = rect
     self.landmarks = numpy.matrix(
-      [[p.x, p.y] for p in PREDICTOR(image, self.rect).parts()]
+      [[p.x, p.y] for p in PREDICTOR(image, rect).parts()]
     )
 
 class BeBean:
@@ -37,11 +39,12 @@ class BeBean:
   OVERLAY_POINTS = [LEFT_EYE_POINTS + RIGHT_EYE_POINTS + LEFT_BROW_POINTS + RIGHT_BROW_POINTS,
     NOSE_POINTS + MOUTH_POINTS]
 
-  COLOR_CORRECT_BLUR_FRAC = 0.6
+  COLOR_CORRECT_BLUR_FRAC = 0.7
 
-  def __init__(self):
+  def __init__(self, before_after = True):
     self.detector = dlib.get_frontal_face_detector()
     self._load_beans()
+    self.before_after = before_after
 
   def load_faces_from_image(self, image_path):
     """
@@ -54,9 +57,11 @@ class BeBean:
 
     rects = self.detector(image, 1)
 
-    print("Number of faces detected: {}".format(len(rects)))
+    if len(rects) == 0:
+      raise NoFaces
+    else:
+      print("Number of faces detected: {}".format(len(rects)))
 
-    if len(rects) == 0: raise NoFaces
     faces = [Face(image, rect) for rect in rects]
     return image, faces
 
@@ -149,18 +154,20 @@ class BeBean:
       )
 
       warped_bean_mask = self.warp_image(bean_mask, M, base_image.shape)
-      # warped_bean_mask = self.warp_image(bean_mask, M, face.image.shape)
       combined_mask = numpy.max(
         [self.get_face_mask(face), warped_bean_mask], axis = 0
       )
 
-      # warped_image = self.warp_image(bean.image, M, face.image.shape)
       warped_image = self.warp_image(bean.image, M, base_image.shape)
       warped_corrected_image = self.correct_colors(base_image, warped_image, face.landmarks)
       base_image = base_image * (1.0 - combined_mask) + warped_corrected_image * combined_mask
 
     path, ext = os.path.splitext( os.path.basename(image_path) )
     cv2.imwrite('outputs/output_' + path + ext, base_image)
+
+    if self.before_after is True:
+      before_after = numpy.concatenate((original, base_image), axis = 1)
+      cv2.imwrite('before_after/' + path + ext, before_after)
 
   def _draw_convex_hull(self, image, points, color):
     "指定したイメージの領域を塗りつぶす"
@@ -187,8 +194,8 @@ class BeBean:
 
 if __name__ == '__main__':
   be_bean = BeBean()
-  # be_bean.to_bean('./images/kanna.jpg')
-  be_bean.to_bean('./images/kikuti.jpg')
+  be_bean.to_bean('./images/kanna.jpg')
+  # be_bean.to_bean('./images/kikuti.jpg')
   # be_bean.to_bean('./images/avengers.jpg')
   # be_bean.to_bean('./images/thor.jpg')
   # be_bean.to_bean('./images/x-men.jpg')

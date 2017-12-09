@@ -123,5 +123,7 @@ Temporary Items
 .apdisk
 
 *.dat
-
-
+outputs/
+before_after/
+!outputs/.gitkeep
+!before_after/.gitkeep

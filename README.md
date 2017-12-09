@@ -25,7 +25,22 @@ https://blog.ymyzk.com/2015/07/os-x-opencv-3-python-2-3/
 2. Macに`dlib`をインストール
 https://qiita.com/matsu_mh/items/7955e9b1f14dc92a38fe
 
+3. `shape_predictor_68_face_landmarks.dat`を[ダウンロード](http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2)
+
 ## 課題
 - 目の位置をとってその角度に近いビーンを選択
 - ビーンが圧縮されないように比率を保ったままリサイズ
 - 合成元の色にビーンの色を近づけてから合成
+
+特徴点から似ているMr. ビーンを検出するのに、OpenCVの総当りマッチングアルゴリズムを採用する?
+http://labs.eecs.tottori-u.ac.jp/sd/Member/oyamada/OpenCV/html/py_tutorials/py_feature2d/py_matcher/py_matcher.html
+
+dlibを使って顔認識とかをいい感じにやってくれる`face_recognition`というライブラリでの、特徴点の距離は普通に特徴点の位置の差分のノルムで計算していたので、
+今回も特に頑張らず、単純に距離を測定して小さなものを選択しました。
+
+## 参考記事
+
+- [Switching Eds: Face swapping with Python, dlib, and OpenCV](https://matthewearl.github.io/2015/07/28/switching-eds-with-python/)
+- [Face Swap on GitHub](https://github.com/hrastnik/FaceSwap)
+- [Face morpher on GitHub](https://github.com/alyssaq/face_morpher)
+- [OpenCVで平均顔を作るチュートリアル](https://medium.com/@NegativeMind/opencv%E3%81%A7%E5%B9%B3%E5%9D%87%E9%A1%94%E3%82%92%E4%BD%9C%E3%82%8B%E3%83%81%E3%83%A5%E3%83%BC%E3%83%88%E3%83%AA%E3%82%A2%E3%83%AB-94c48a5cd1f8)
