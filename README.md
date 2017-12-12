@@ -44,3 +44,6 @@ dlibを使って顔認識とかをいい感じにやってくれる`face_recogni
 - [Face Swap on GitHub](https://github.com/hrastnik/FaceSwap)
 - [Face morpher on GitHub](https://github.com/alyssaq/face_morpher)
 - [OpenCVで平均顔を作るチュートリアル](https://medium.com/@NegativeMind/opencv%E3%81%A7%E5%B9%B3%E5%9D%87%E9%A1%94%E3%82%92%E4%BD%9C%E3%82%8B%E3%83%81%E3%83%A5%E3%83%BC%E3%83%88%E3%83%AA%E3%82%A2%E3%83%AB-94c48a5cd1f8)
+
+https://github.com/mrgloom/Face-Swap
+https://github.com/YuvalNirkin/face_swap
